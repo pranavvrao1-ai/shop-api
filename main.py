@@ -79,7 +79,7 @@ def checkout():
     total = 0
     for item in CART:
         prod = PRODUCTS[item["product_id"]]
-        price = prod["price"]
+        price = prod["cost"]
         total += price * item["quantity"]
 
     CART.clear()
@@ -148,4 +148,4 @@ def dashboard():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
