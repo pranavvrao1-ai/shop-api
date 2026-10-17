@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -205,7 +205,35 @@ async function checkout() {
   }
 }
 
+async function triggerDemoBreak() {
+  try {
+    const res = await fetch('/api/demo/break', { method: 'POST' });
+    const data = await res.json();
+    showToast("⚠️ Outage Activated! Checkout will fail.", true);
+  } catch (err) {
+    showToast('Failed to trigger: ' + err, true);
+  }
+}
+
+async function triggerDemoReset() {
+  try {
+    const res = await fetch('/api/demo/reset', { method: 'POST' });
+    const data = await res.json();
+    showToast("✅ Code Restored! Checkout healthy.", false);
+  } catch (err) {
+    showToast('Failed to reset: ' + err, true);
+  }
+}
+
 loadProducts().then(loadCart);
 </script>
+
+<!-- Judge Demo Controls Toolbar -->
+<div style="position: fixed; bottom: 20px; right: 20px; background: rgba(15, 23, 42, 0.95); border: 1px solid #38bdf8; border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+  <span style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px;">DEMO CONTROLS:</span>
+  <button onclick="triggerDemoBreak()" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">🚨 Break Checkout</button>
+  <button onclick="triggerDemoReset()" style="background: #22c55e; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">🔄 Reset Code</button>
+</div>
+
 </body>
 </html>

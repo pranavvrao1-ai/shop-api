@@ -79,11 +79,27 @@ def checkout():
     total = 0
     for item in CART:
         prod = PRODUCTS[item["product_id"]]
-        price = prod.get("price", prod.get("cost", 0))
+        price = prod["price"]
         total += price * item["quantity"]
 
     CART.clear()
     return {"status": "paid", "total": total}
+
+
+@app.post("/api/demo/break")
+def demo_break():
+    for pid in PRODUCTS:
+        if "price" in PRODUCTS[pid]:
+            PRODUCTS[pid]["cost"] = PRODUCTS[pid].pop("price")
+    return {"status": "broken", "message": "Simulated outage: 'price' key removed! Checkout will now fail 500."}
+
+
+@app.post("/api/demo/reset")
+def demo_reset():
+    for pid in PRODUCTS:
+        if "cost" in PRODUCTS[pid]:
+            PRODUCTS[pid]["price"] = PRODUCTS[pid].pop("cost")
+    return {"status": "healthy", "message": "Healthy code restored! Checkout will now succeed."}
 # ---- Dashboard ----
 BASE_DIR = Path(__file__).parent
 
