@@ -1,7 +1,7 @@
 .venv/
 __pycache__/
 .idea/
-logs/
 *.pyc
 .pytest_cache/
 demo_incidents.db
+incidents.db

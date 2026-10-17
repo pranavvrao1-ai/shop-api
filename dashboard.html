@@ -16,6 +16,7 @@
   .diagnosing { background: #78350f; color: #fde68a; }
   .pr_opened  { background: #1e3a8a; color: #bfdbfe; }
   .failed     { background: #7f1d1d; color: #fecaca; }
+    .diagnosed  { background: #4c1d95; color: #ddd6fe; }
   .merged, .resolved { background: #14532d; color: #bbf7d0; }
   .muted { color: #94a3b8; font-size: .85rem; margin-top: .2rem; }
   a { color: #7dd3fc; }
@@ -53,9 +54,19 @@ function causeCell(r) {
   const td = document.createElement("td");
   td.textContent = r.root_cause || "Investigating...";
   if (r.explanation) {
+    let info = null;
+    try { info = JSON.parse(r.explanation); } catch (e) {}
     const d = document.createElement("div");
     d.className = "muted";
-    d.textContent = r.explanation;
+    if (info && typeof info === "object") {
+      const parts = [];
+      if (info.recommended_fix) parts.push("Recommended fix: " + info.recommended_fix);
+      if (info.still_present_in_current_code) parts.push("Still in current code: " + info.still_present_in_current_code);
+      if (info.safe_to_auto_fix !== undefined) parts.push("Safe to auto-fix: " + info.safe_to_auto_fix);
+      d.textContent = parts.join(" · ");
+    } else {
+      d.textContent = r.explanation;
+    }
     td.appendChild(d);
   }
   return td;
