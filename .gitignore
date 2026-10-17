@@ -4,3 +4,4 @@ __pycache__/
 logs/
 *.pyc
 .pytest_cache/
+demo_incidents.db

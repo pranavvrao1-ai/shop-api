@@ -61,3 +61,8 @@ def test_unhandled_error_is_logged_as_json(monkeypatch):
     assert set(record) == {"ts", "level", "service", "message", "traceback"}
     assert record["service"] == "shop-api"
     assert "KeyError" in record["traceback"]
+
+    def test_dashboard_page():
+        r = client.get("/dashboard")
+        assert r.status_code == 200
+        assert "Incidents" in r.text
