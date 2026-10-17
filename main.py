@@ -98,7 +98,7 @@ def demo_break():
 def demo_reset():
     for pid in PRODUCTS:
         if "cost" in PRODUCTS[pid]:
-            PRODUCTS[pid]["price"] = PRODUCTS[pid].pop("cost")
+            PRODUCTS[pid]["cost"] = PRODUCTS[pid].pop("price")
     return {"status": "healthy", "message": "Healthy code restored! Checkout will now succeed."}
 # ---- Dashboard ----
 BASE_DIR = Path(__file__).parent
