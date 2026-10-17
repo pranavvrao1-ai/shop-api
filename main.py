@@ -78,7 +78,8 @@ def checkout():
 
     total = 0
     for item in CART:
-        price = PRODUCTS[item["product_id"]]["price"]
+        prod = PRODUCTS[item["product_id"]]
+        price = prod.get("price", prod.get("cost", 0))
         total += price * item["quantity"]
 
     CART.clear()
@@ -88,8 +89,16 @@ BASE_DIR = Path(__file__).parent
 
 
 def incidents_db_path() -> Path:
-    default = BASE_DIR.parent / "incident-agent" / "incidents.db"
+    for candidate in [
+        BASE_DIR.parent / "ai on call engineer" / "incidents.db",
+        BASE_DIR.parent / "incident-agent" / "incidents.db",
+        BASE_DIR / "incidents.db",
+    ]:
+        if candidate.exists():
+            return candidate
+    default = BASE_DIR.parent / "ai on call engineer" / "incidents.db"
     return Path(os.environ.get("INCIDENTS_DB", default))
+
 
 
 @app.get("/api/incidents")
@@ -107,11 +116,20 @@ def api_incidents():
             conn.close()
     except sqlite3.Error:
         return []  # DB locked for a moment or table not created yet
-    for r in rows:
-        r.pop("report", None)  # the long write-up; keep the list light
     return rows
+
+
+@app.get("/", include_in_schema=False)
+@app.get("/store", include_in_schema=False)
+def store():
+    return FileResponse(BASE_DIR / "store.html")
 
 
 @app.get("/dashboard", include_in_schema=False)
 def dashboard():
     return FileResponse(BASE_DIR / "dashboard.html")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
