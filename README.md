@@ -1,7 +1,6 @@
 # shop-api
 
-A small fake online store built to be the "patient" for an **AI on-call engineer**.
-
+A small demo online store built as the test application for an **AI on-call engineer**.
 When this app throws repeated errors in production, the companion project
 [incident-agent](https://github.com/Samuel777822/incident-agent) reads the logs, finds the root cause,
 asks an LLM for a fix, tests it, and opens a pull request here. A human clicks Merge.
