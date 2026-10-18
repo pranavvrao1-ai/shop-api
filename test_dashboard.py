@@ -20,8 +20,7 @@ def test_incidents_reads_rows_without_report(monkeypatch, tmp_path):
     conn.commit()
     conn.close()
     monkeypatch.setenv("INCIDENTS_DB", str(db))
-    assert client.get("/api/incidents").json() == [{"id": 1, "status": "diagnosing"}]
-
+    assert client.get("/api/incidents").json() == [{"id": 1, "status": "diagnosing", "report": "long text"}]
 
 def test_dashboard_page():
     r = client.get("/dashboard")

@@ -5,3 +5,6 @@ __pycache__/
 .pytest_cache/
 demo_incidents.db
 incidents.db
+logs/
+incidents.db
+demo_incidents.db

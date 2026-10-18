@@ -121,6 +121,9 @@ BASE_DIR = Path(__file__).parent
 
 
 def incidents_db_path() -> Path:
+    env = os.environ.get("INCIDENTS_DB")
+    if env:
+        return Path(env)
     for candidate in [
         BASE_DIR.parent / "ai on call engineer" / "incidents.db",
         BASE_DIR.parent / "incident-agent" / "incidents.db",
@@ -128,9 +131,7 @@ def incidents_db_path() -> Path:
     ]:
         if candidate.exists():
             return candidate
-    default = BASE_DIR.parent / "ai on call engineer" / "incidents.db"
-    return Path(os.environ.get("INCIDENTS_DB", default))
-
+    return BASE_DIR.parent / "incident-agent" / "incidents.db"
 
 
 @app.get("/api/incidents")
