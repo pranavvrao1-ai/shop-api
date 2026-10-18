@@ -1,6 +1,8 @@
 import os
 import sqlite3
 from pathlib import Path
+import subprocess
+import sys
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -28,9 +30,9 @@ async def log_unhandled_errors(request: Request, call_next):
 
 # ---- "Database": plain Python dicts ----
 PRODUCTS = {
-    1: {"name": "Wireless Mouse", "cost": 799},
-    2: {"name": "Mechanical Keyboard", "cost": 3499},
-    3: {"name": "USB-C Hub", "cost": 1899},
+    1: {"name": "Wireless Mouse", "price": 799},
+    2: {"name": "Mechanical Keyboard", "price": 3499},
+    3: {"name": "USB-C Hub", "price": 1899},
 }
 
 CART: list[dict] = []
@@ -63,43 +65,32 @@ def view_cart():
     return {"items": CART}
 
 
-@app.post("/cart")
-def add_to_cart(item: CartItem):
-    if item.product_id not in PRODUCTS:
-        raise HTTPException(status_code=404, detail="Product not found")
-    CART.append({"product_id": item.product_id, "quantity": item.quantity})
-    return {"items": CART}
-
-
-@app.post("/checkout")
-def checkout():
-    if not CART:
-        raise HTTPException(status_code=400, detail="Cart is empty")
-
-    total = 0
-    for item in CART:
-        prod = PRODUCTS[item["product_id"]]
-        price = prod["cost"]
-        total += price * item["quantity"]
-
-    CART.clear()
-    return {"status": "paid", "total": total}
+def _launch(script_name):
+    """Run break.py or reset.py in a separate process, so the reply is sent
+    before the file changes and the server restarts."""
+    flags = 0
+    if os.name == "nt":
+        flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+    subprocess.Popen(
+        [sys.executable, str(Path(__file__).parent / script_name)],
+        cwd=str(Path(__file__).parent),
+        creationflags=flags,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 @app.post("/api/demo/break")
 def demo_break():
-    for pid in PRODUCTS:
-        if "price" in PRODUCTS[pid]:
-            PRODUCTS[pid]["cost"] = PRODUCTS[pid].pop("price")
-    return {"status": "broken", "message": "Simulated outage: 'price' key removed! Checkout will now fail 500."}
+    _launch("break.py")
+    return {"status": "breaking", "message": "Committing the bug to the repository. Checkout will start failing in a few seconds."}
 
 
 @app.post("/api/demo/reset")
 def demo_reset():
-    for pid in PRODUCTS:
-        if "cost" in PRODUCTS[pid]:
-            PRODUCTS[pid]["cost"] = PRODUCTS[pid].pop("price")
-    return {"status": "healthy", "message": "Healthy code restored! Checkout will now succeed."}
+    _launch("reset.py")
+    return {"status": "healing", "message": "Restoring the healthy code. Checkout will recover in a few seconds."}
 # ---- Dashboard ----
 BASE_DIR = Path(__file__).parent
 
