@@ -81,7 +81,7 @@ def checkout():
     total = 0
     for item in CART:
         prod = PRODUCTS[item["product_id"]]
-        price = prod["price"]
+        price = prod["cost"]
         total += price * item["quantity"]
 
     CART.clear()
