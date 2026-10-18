@@ -30,9 +30,9 @@ async def log_unhandled_errors(request: Request, call_next):
 
 # ---- "Database": plain Python dicts ----
 PRODUCTS = {
-    1: {"name": "Wireless Mouse", "cost": 799},
-    2: {"name": "Mechanical Keyboard", "cost": 3499},
-    3: {"name": "USB-C Hub", "cost": 1899},
+    1: {"name": "Wireless Mouse", "price": 799},
+    2: {"name": "Mechanical Keyboard", "price": 3499},
+    3: {"name": "USB-C Hub", "price": 1899},
 }
 
 CART: list[dict] = []
