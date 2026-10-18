@@ -31,9 +31,9 @@ async def log_unhandled_errors(request: Request, call_next):
 
 # ---- "Database": plain Python dicts ----
 PRODUCTS = {
-    1: {"name": "Wireless Mouse", "price": 799},
-    2: {"name": "Mechanical Keyboard", "price": 3499},
-    3: {"name": "USB-C Hub", "price": 1899},
+    1: {"name": "Wireless Mouse", "cost": 799},
+    2: {"name": "Mechanical Keyboard", "cost": 3499},
+    3: {"name": "USB-C Hub", "cost": 1899},
 }
 
 CART: list[dict] = []
@@ -49,13 +49,12 @@ def health():
     return {"status": "ok", "service": "shop-api"}
 
 
+
 @app.get("/api/status", include_in_schema=False)
 def status():
-    """Lets the storefront show whether the code that is live right now is healthy."""
     healthy = all("price" in p for p in PRODUCTS.values())
     commit = os.environ.get("RENDER_GIT_COMMIT", "local")[:7]
-    return {"healthy": healthy, "commit": commit}
-
+    return {"healthy": healthy, "commit": commit, "last_run": _last_run()}
 
 @app.get("/products")
 def list_products():
@@ -97,21 +96,29 @@ def checkout():
     return {"status": "paid", "total": total}
 
 
-# ---- Demo controls: break / reset the catalog ----
+LAST_RUN_LOG = Path(__file__).parent / "demo_last_run.log"
+
+
 def _launch(script_name):
-    """Local only: run break.py or reset.py in a separate process."""
-    flags = 0
-    if os.name == "nt":
-        flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+    """Local only: run break.py / reset.py in the background, with no console window."""
+    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    log = open(LAST_RUN_LOG, "w", encoding="utf-8")
     subprocess.Popen(
         [sys.executable, str(Path(__file__).parent / script_name)],
         cwd=str(Path(__file__).parent),
         creationflags=flags,
         stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=log,
+        stderr=subprocess.STDOUT,
     )
+    log.close()
 
+
+def _last_run():
+    try:
+        return LAST_RUN_LOG.read_text(encoding="utf-8", errors="replace")[-300:].strip()
+    except OSError:
+        return ""
 
 def _demo_toggle(broken, script):
     if not os.environ.get("RENDER"):  # running on your laptop: use the git scripts
