@@ -1,8 +1,8 @@
+import sys
+import subprocess
 import os
 import sqlite3
 from pathlib import Path
-import subprocess
-import sys
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -65,6 +65,29 @@ def view_cart():
     return {"items": CART}
 
 
+@app.post("/cart")
+def add_to_cart(item: CartItem):
+    if item.product_id not in PRODUCTS:
+        raise HTTPException(status_code=404, detail="Product not found")
+    CART.append({"product_id": item.product_id, "quantity": item.quantity})
+    return {"items": CART}
+
+
+@app.post("/checkout")
+def checkout():
+    if not CART:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+
+    total = 0
+    for item in CART:
+        prod = PRODUCTS[item["product_id"]]
+        price = prod["price"]
+        total += price * item["quantity"]
+
+    CART.clear()
+    return {"status": "paid", "total": total}
+
+
 def _launch(script_name):
     """Run break.py or reset.py in a separate process, so the reply is sent
     before the file changes and the server restarts."""
@@ -91,6 +114,8 @@ def demo_break():
 def demo_reset():
     _launch("reset.py")
     return {"status": "healing", "message": "Restoring the healthy code. Checkout will recover in a few seconds."}
+
+
 # ---- Dashboard ----
 BASE_DIR = Path(__file__).parent
 
