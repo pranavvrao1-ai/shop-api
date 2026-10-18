@@ -1,6 +1,5 @@
 import json
 import os
-import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
@@ -50,13 +49,20 @@ def test_checkout():
     assert r.json()["total"] == 1598  # 799 * 2
 
 
+def test_checkout_empty_cart():
+    assert client.post("/checkout").status_code == 400
+
+
+def test_status_reports_healthy():
+    assert client.get("/api/status").json()["healthy"] is True
+
+
 def test_unhandled_error_is_logged_as_json(monkeypatch):
-    # Simulate the bug: product with no "price" key
+    # Simulate the bug: a product with no price key
     monkeypatch.setitem(main.PRODUCTS, 1, {"name": "Broken"})
     client.post("/cart", json={"product_id": 1, "quantity": 1})
     r = client.post("/checkout")
     assert r.status_code == 500
-
     with open(os.environ["SHOP_LOG_PATH"], encoding="utf-8") as f:
         record = json.loads(f.readlines()[-1])
     assert set(record) == {"ts", "level", "service", "message", "traceback"}

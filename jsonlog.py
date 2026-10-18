@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 import traceback
 from datetime import datetime, timezone
 
@@ -34,9 +35,13 @@ def get_logger() -> logging.Logger:
 
     logger = logging.getLogger(SERVICE)
     if not logger.handlers:
-        handler = logging.FileHandler(path, encoding="utf-8")
-        handler.setFormatter(JsonFormatter())
-        logger.addHandler(handler)
+        formatter = JsonFormatter()
+        file_handler = logging.FileHandler(path, encoding="utf-8")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        console = logging.StreamHandler(sys.stderr)  # also visible in the Render log viewer
+        console.setFormatter(formatter)
+        logger.addHandler(console)
         logger.setLevel(logging.ERROR)
         logger.propagate = False
     return logger

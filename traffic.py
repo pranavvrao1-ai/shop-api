@@ -1,10 +1,12 @@
+import os
 import random
 import sys
 import time
 
 import httpx
 
-BASE_URL = "http://127.0.0.1:8000"
+# Default is the live Render site. For a local server: $env:BASE_URL="http://127.0.0.1:8010"
+BASE_URL = os.environ.get("BASE_URL", "https://shop-api-kwmr.onrender.com")
 
 
 def hit(client, method, path, **kwargs):
@@ -16,13 +18,11 @@ def hit(client, method, path, **kwargs):
 
 
 def main():
-    delay = float(sys.argv[1]) if len(sys.argv) > 1 else 1.0
+    delay = float(sys.argv[1]) if len(sys.argv) > 1 else 1.5
     print(f"Sending traffic to {BASE_URL} every {delay}s. Ctrl+C to stop.")
-    with httpx.Client(base_url=BASE_URL, timeout=5) as client:
+    with httpx.Client(base_url=BASE_URL, timeout=15) as client:
         while True:
-            hit(client, "GET", "/health")
             hit(client, "GET", "/products")
-            hit(client, "GET", f"/products/{random.choice([1, 2, 3])}")
             if random.random() < 0.2:
                 hit(client, "GET", "/products/999")  # expected 404, never logged
             hit(client, "POST", "/cart",
